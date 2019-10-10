@@ -25,7 +25,8 @@ const observer = window.IntersectionObserver && new IntersectionObserver(entries
       const link = entry.target;
       if (toPrefetch.has(link.href)) {
         observer.unobserve(link);
-        prefetcher(link.href);
+        prefetcher(link.href,link.observerCb);
+        
       }
     }
   });
@@ -36,9 +37,10 @@ const observer = window.IntersectionObserver && new IntersectionObserver(entries
  * the URL from the toPrefetch Set.
  * @param {String} url - URL to prefetch
  */
-function prefetcher(url) {
+function prefetcher(url,cb) {
   toPrefetch.delete(url);
   prefetch(new URL(url, location.href).toString(), observer.priority);
+  cb && typeof cb == 'function' && cb(url);
 }
 
 /**
@@ -80,7 +82,7 @@ export default function (options) {
 
   const timeout = options.timeout || 2e3;
   const timeoutFn = options.timeoutFn || requestIdleCallback;
-
+  const observerCb = options.observerCb||null;
   timeoutFn(() => {
     // If URLs are given, prefetch them.
     if (options.urls) {
@@ -93,6 +95,7 @@ export default function (options) {
             link.hostname = new URL(link.dataset.kabutoUrl).hostname;
             link.href = link.dataset.kabutoUrl;
         }
+        link.observerCb = observerCb;
         observer.observe(link);
         // If the anchor matches a permitted origin
         // ~> A `[]` or `true` means everything is allowed
@@ -100,6 +103,7 @@ export default function (options) {
           // If there are any filters, the link must not match any of them
           isIgnored(link, ignores) || toPrefetch.add(link.href);
         }
+        
       });
     }
   }, {timeout});

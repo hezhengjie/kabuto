@@ -6,7 +6,6 @@ import { checkUrlType,checkSameOrigin} from './core/url';
 import { getSourceUrls,getSourceUrlsByWorker } from './core/parse';
 import { makeWorker } from './core/worker';
 class Kabuto {
-    mode: string = 'manual'; //手动或者自动模式 auto or manual
     pageUrl: string[] = []; // 页面记录
     sourceUrl: string[] = []; // source记录
     urls: string[] = []; // 手动模式下的资源栈
@@ -14,28 +13,20 @@ class Kabuto {
     el: HTMLElement = document.body;
     ignores: any[] = [];
     timeout: number = 2000;
-    constructor(config: { timeout: number | void, mode: string | void, urls: string[] | void, origins: string[] | boolean | void, el: HTMLElement | void, ignores: any[] | void } | void) {
-        const { mode = this.mode, urls = this.urls, origins = this.origins, el = this.el, ignores = this.ignores, timeout = this.timeout } = config || {};
-        this.mode = mode;
+    constructor(config: { timeout: number | void, urls: string[] | void, origins: string[] | boolean | void, el: HTMLElement | void, ignores: any[] | void } | void) {
+        const {  urls = this.urls, origins = this.origins, el = this.el, ignores = this.ignores, timeout = this.timeout } = config || {};
         this.urls = urls;
         this.sourceUrl = urls;
         this.origins = origins;
         this.el = el;
         this.ignores = ignores;
         this.timeout = timeout;
-        if (this.mode === 'auto') {
-            quicklink({
-                origins,
-                el,
-                ignores,
-                timeout
-            })
-        }
-        else if (this.mode === 'manual') {
+        // 有url
+        if (this.urls&&this.urls.length) {
             this.listen()
         }
         else {
-            throw new KabutoError('please select a correct mode auto or manual');
+            this.observe(this.el);
         }
 
     }
@@ -45,14 +36,14 @@ class Kabuto {
      */
     add(url: string) {
         if (checkUrlType(url) === 'page') {
-            //页面
+            // 页面
             if(this.pageUrl.indexOf(url)>-1){
-                //页面已经预加载
+                // 页面已经预加载
                 return ;
             }
             this.urls.push(url);
             if(checkSameOrigin(url) ){
-                //同源
+                // 同源
                 this.pageUrl.push(url);
                 if (window.Worker) {
                     let worker = makeWorker(getSourceUrlsByWorker);
@@ -87,7 +78,7 @@ class Kabuto {
         }
         else {
             if(this.sourceUrl.indexOf(url)>-1){
-                //页面已经预加载
+                // 页面已经预加载
                 return ;
             }
             this.urls.push(url);
@@ -97,17 +88,42 @@ class Kabuto {
     }
     /**
      * 监听空闲时间
-
      */
     listen() {
+        try {
+            if(!(this.urls&&this.urls.length)){
+                return ;
+            }
+            quicklink({
+                origins:this.origins,
+                urls:this.urls,
+                ignores:this.ignores,
+                timeout:this.timeout
+            });
+            this.sourceUrl = this.sourceUrl.concat(this.urls);
+            this.urls = []; 
+        } catch (error) {
+            throw new KabutoError(error)
+        }
+        
+    }
+    /**
+     * 监听DOM
+     */
+    observe(el:HTMLElement) {
+        const self = this;
+        if(!el){
+            return;
+        }
         quicklink({
             origins:this.origins,
-            urls:this.urls,
+            el,
             ignores:this.ignores,
-            timeout:this.timeout
+            timeout:this.timeout,
+            observerCb:(url)=>{
+                return self.add(url);
+            }
         });
-        this.sourceUrl = this.sourceUrl.concat(this.urls);
-        this.urls = [];
     }
 
 }
