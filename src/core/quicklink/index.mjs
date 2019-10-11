@@ -19,6 +19,7 @@ import requestIdleCallback from './request-idle-callback.mjs';
 
 const toPrefetch = new Set();
 
+// TODO 出现在视窗内一端时间才打点
 const observer = window.IntersectionObserver && new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {

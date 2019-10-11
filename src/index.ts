@@ -11,16 +11,18 @@ class Kabuto {
     urls: string[] = []; // 手动模式下的资源栈
     origins: string[] | boolean = false;
     el: HTMLElement = document.body;
+    observeTime:number = 1500;
     ignores: any[] = [];
     timeout: number = 2000;
-    constructor(config: { timeout: number | void, urls: string[] | void, origins: string[] | boolean | void, el: HTMLElement | void, ignores: any[] | void } | void) {
-        const {  urls = this.urls, origins = this.origins, el = this.el, ignores = this.ignores, timeout = this.timeout } = config || {};
+    constructor(config: { timeout: number | void, urls: string[] | void, origins: string[] | boolean | void, el: HTMLElement | void, ignores: any[] | void ,observeTime:number | void} | void) {
+        const {  urls = this.urls, origins = this.origins, el = this.el, ignores = this.ignores, timeout = this.timeout,observeTime = this.observeTime } = config || {};
         this.urls = urls;
         this.sourceUrl = urls;
         this.origins = origins;
         this.el = el;
         this.ignores = ignores;
         this.timeout = timeout;
+        this.observeTime = observeTime;
         // 有url
         if (this.urls&&this.urls.length) {
             this.listen()
