@@ -18,18 +18,49 @@ import prefetch from './prefetch.mjs';
 import requestIdleCallback from './request-idle-callback.mjs';
 
 const toPrefetch = new Set();
-
+let f = null;
+let entryList = new Map();
+let outList = new Map();
+let delay = 3000;
 // TODO 出现在视窗内一端时间才打点
 const observer = window.IntersectionObserver && new IntersectionObserver(entries => {
   entries.forEach(entry => {
+    const link = entry;
     if (entry.isIntersecting) {
-      const link = entry.target;
-      if (toPrefetch.has(link.href)) {
-        observer.unobserve(link);
-        prefetcher(link.href,link.observerCb);
-        
-      }
+      console.log(entryList)
+      entryList.set(link,link);
+      outList.delete(link);
+      // viewableTimer[id] = setTimeout(((id) => {
+      //   observer.unobserve(link);
+      //   delete viewableTimer[id]
+      //   if (toPrefetch.has(link.href)) {
+      //     observer.unobserve(link);
+      //     prefetcher(link.href,link.observerCb);
+      //   }
+      // }).bind(null, id), 0.2 * 1000)
     }
+    else{
+      outList.set(link,link);
+      console.log(outList)
+      if(entryList.has(link)){
+        if(outList.get(link).time-entryList.get(link).time>=delay){
+          console.log('曝光啦')
+          observer.unobserve(link.target);
+          outList.delete(link);
+        }
+        entryList.delete(link);
+      }
+      
+    }
+    if (f) clearTimeout(f);
+    f = setTimeout(()=>{
+      const list = Object.keys(entryList);
+      list.forEach((link) => {
+        console.log('曝光啦')
+          observer.unobserve(link.target);
+          outList.delete(link);
+      })
+    },delay)
   });
 });
 
@@ -83,6 +114,7 @@ export default function (options) {
 
   const timeout = options.timeout || 2e3;
   const timeoutFn = options.timeoutFn || requestIdleCallback;
+  const observeTime = options.observeTime||0;
   const observerCb = options.observerCb||null;
   timeoutFn(() => {
     // If URLs are given, prefetch them.
@@ -97,6 +129,7 @@ export default function (options) {
             link.href = link.dataset.kabutoUrl;
         }
         link.observerCb = observerCb;
+        link.observeTime = observeTime;
         observer.observe(link);
         // If the anchor matches a permitted origin
         // ~> A `[]` or `true` means everything is allowed

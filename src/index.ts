@@ -11,7 +11,7 @@ class Kabuto {
     urls: string[] = []; // 手动模式下的资源栈
     origins: string[] | boolean = false;
     el: HTMLElement = document.body;
-    observeTime:number = 1500;
+    observeTime:number = 800;
     ignores: any[] = [];
     timeout: number = 2000;
     constructor(config: { timeout: number | void, urls: string[] | void, origins: string[] | boolean | void, el: HTMLElement | void, ignores: any[] | void ,observeTime:number | void} | void) {
