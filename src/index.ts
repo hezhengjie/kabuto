@@ -2,7 +2,7 @@
 import quicklink from "./core/quicklink/index.mjs";
 import requestIdleCallback from './core/quicklink/request-idle-callback.mjs'
 import KabutoError from './core/error';
-import { checkUrlType,checkSameOrigin} from './core/url';
+import { checkUrlType,checkSameOrigin,getRealUrl} from './core/url';
 import { getSourceUrls,getSourceUrlsByWorker } from './core/parse';
 import { makeWorker } from './core/worker';
 class Kabuto {
@@ -11,12 +11,14 @@ class Kabuto {
     urls: string[] = []; // 手动模式下的资源栈
     origins: string[] | boolean = false;
     el: HTMLElement = document.body;
-    observeTime:number = 1500;
+    observeTime:number = 500;
     ignores: any[] = [];
     timeout: number = 2000;
-    constructor(config: { timeout: number | void, urls: string[] | void, origins: string[] | boolean | void, el: HTMLElement | void, ignores: any[] | void ,observeTime:number | void} | void) {
+    constructor(config: { timeout?: number| void, urls?: string[] | void, origins?: string[] | boolean | void, el?: HTMLElement | void, ignores?: any[]| void,observeTime?:number| void} | void) {
         const {  urls = this.urls, origins = this.origins, el = this.el, ignores = this.ignores, timeout = this.timeout,observeTime = this.observeTime } = config || {};
-        this.urls = urls;
+        this.urls = urls.map((url)=>{
+            return getRealUrl(url);
+        });
         this.sourceUrl = urls;
         this.origins = origins;
         this.el = el;
@@ -37,6 +39,7 @@ class Kabuto {
      * @param url
      */
     add(url: string) {
+        url = getRealUrl(url);
         if (checkUrlType(url) === 'page') {
             // 页面
             if(this.pageUrl.indexOf(url)>-1){
@@ -100,7 +103,8 @@ class Kabuto {
                 origins:this.origins,
                 urls:this.urls,
                 ignores:this.ignores,
-                timeout:this.timeout
+                timeout:this.timeout,
+                observeTime:this.observeTime
             });
             this.sourceUrl = this.sourceUrl.concat(this.urls);
             this.urls = []; 
@@ -122,6 +126,7 @@ class Kabuto {
             el,
             ignores:this.ignores,
             timeout:this.timeout,
+            observeTime:this.observeTime,
             observerCb:(url)=>{
                 return self.add(url);
             }

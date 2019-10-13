@@ -16,19 +16,29 @@
 
 import prefetch from './prefetch.mjs';
 import requestIdleCallback from './request-idle-callback.mjs';
-
+import whatsElementPure from '../whatelement/what-element';
+import {getHostName} from '../url';
+const whats = new whatsElementPure();
 const toPrefetch = new Set();
-
-// TODO 出现在视窗内一端时间才打点
+const viewableTimer = {};
+let observeTime = 0;
 const observer = window.IntersectionObserver && new IntersectionObserver(entries => {
   entries.forEach(entry => {
+    const link = entry.target;
+    const id = whats.getUniqueId(link).wid;
     if (entry.isIntersecting) {
-      const link = entry.target;
-      if (toPrefetch.has(link.href)) {
+      viewableTimer[id] = setTimeout(((id) => {
         observer.unobserve(link);
-        prefetcher(link.href,link.observerCb);
-        
-      }
+        delete viewableTimer[id]
+        if (toPrefetch.has(link.href)) {
+          observer.unobserve(link);
+          prefetcher(link.href,link.observerCb);
+        }
+      }).bind(null, id), observeTime)
+    }
+    else{
+      clearTimeout(viewableTimer[id])
+      delete viewableTimer[id]
     }
   });
 });
@@ -83,6 +93,7 @@ export default function (options) {
 
   const timeout = options.timeout || 2e3;
   const timeoutFn = options.timeoutFn || requestIdleCallback;
+  observeTime = options.observeTime||0;
   const observerCb = options.observerCb||null;
   timeoutFn(() => {
     // If URLs are given, prefetch them.
@@ -93,7 +104,7 @@ export default function (options) {
       Array.from((options.el || document).querySelectorAll('a,[data-kabuto-url]'), link => {
         if(!!link.attributes['data-kabuto-url']){
             // data-kabuto-url
-            link.hostname = new URL(link.dataset.kabutoUrl).hostname;
+            link.hostname = getHostName(link.dataset.kabutoUrl);
             link.href = link.dataset.kabutoUrl;
         }
         link.observerCb = observerCb;

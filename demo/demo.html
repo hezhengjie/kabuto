@@ -11,11 +11,56 @@
 
 <body>
   <div>
-      
-      <div data-kabuto-url="https://fed.taobao.org/" style="height:100vh;width: 100%;background: #111;color:#fff">测试1</div>
-    <a href="https://fed.taobao.org/blog/2019/09/02/make-infinite-scroll/" style="height:100vh;width: 100%;background: rgb(17, 212, 121);color:#fff;display: block;">测试2</a>
-    <div data-kabuto-url="http://127.0.0.1:3000/demo/demo2.html" style="height:100vh;width: 100%;background: rgb(150, 24, 24);color:#fff">测试3</div>
+    <div class="demo-block-1">
+       模块-1
+    </div>
+    <a class="demo-block-2" href="/demo/demo2.html">
+        模块-2
+     </a>
+
+     <div class="demo-block-3">
+        模块-3
+     </div>
+     <div class="demo-block-4" data-kabuto-url="/demo/demo4.html" onclick="location.href='/demo/demo4.html'">
+        模块-4
+     </div>
+     <div class="demo-block-5" data-kabuto-url="/demo/demo5.html" onclick="location.href='/demo/demo5.html'">
+        模块-5
+     </div>
   </div>
   <script src='../dist/demo.js'></script>
 </body>
+<style>
+  body{
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+
+  }
+  .demo-block-1{
+
+    height: 104vh;
+    background: red;
+  }
+  .demo-block-2{
+    display: block;
+    height: 10vh;
+    background: yellow;
+  }
+  .demo-block-3{
+    height: 100vh;
+    background: green;
+  }
+  .demo-block-4{
+    height: 10vh;
+    background: blue;
+  }
+  .demo-block-5{
+    height: 10vh;
+    background: burlywood;
+  }
+
+</style>
 </html>
