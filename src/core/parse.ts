@@ -15,7 +15,7 @@ function getSourceUrls(url:string): Promise<any[]>{
 function getSourceUrlsByWorker(){
     // 解析html，返回资源链接
     onmessage = ( event )=>{
-        let {url,jobId}= event.data;
+        const {url,jobId}= event.data;
         return new Promise((resolve, reject) => {
             const req = new XMLHttpRequest();
             req.onreadystatechange = function() {

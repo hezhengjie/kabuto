@@ -51,7 +51,7 @@ class Kabuto {
                 // 同源
                 this.pageUrl.push(url);
                 if (window.Worker) {
-                    let worker = makeWorker(getSourceUrlsByWorker);
+                    const worker = makeWorker(getSourceUrlsByWorker);
                     worker({url}).then((res) => {
                         this.urls = this.urls.concat(res);
                         this.urls = this.urls.filter(el=>{

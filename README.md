@@ -3,7 +3,6 @@
 基于quicklink的预加载工具。  
 
 ## Background
----------
 quicklink是Google开源的预加载工具，可以在空闲时间预获取页面可视区域（以下简称视区）内的链接，加快后续加载速度。  
 但是在实际应用中quicklink还是有一定问题：  
 1.dom监听只能监听a链接下的href资源  
