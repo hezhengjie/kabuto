@@ -22,11 +22,11 @@ function getSourceUrlsByWorker(){
                 if (this.readyState === 4 && this.status === 200) {
                     // web worker中无法使用dom操作，采用正则匹配
                     const html  = req.responseText||'';
-                    const resourceReg = /(<script .*?src=[\'\"](.+?)[\'\"])|(<link .*?href=[\'\"](.+?)[\'\"])/gi;
+                    const resourceReg = /(<script .*?src=[\'\"](.+?)[\'\"])|(<link .*?href=[\'\"](.+?)[\'\"]|(<img .*?\ssrc=[\'\"](.+?)[\'\"]))/gi;
                     const sourceUrls = html.match(resourceReg).filter((resource)=>{
                         return resource.indexOf('rel="dns-prefetch"')<0 && resource.indexOf("rel='dns-prefetch'")<0;
                     }).map((link)=>{
-                        return link.replace(resourceReg, '$2$4')
+                        return link.replace(resourceReg, '$2$4$6')
                     })
                     postMessage({jobId,sourceUrls}); 
                     resolve(sourceUrls);
@@ -43,7 +43,7 @@ function parseHtml(html: string):any[] {
     const body = document.createElement('html')
     body.innerHTML = html;
     dom.appendChild(body);
-    return Array.from(dom.querySelectorAll('script,link')).filter(source=>{
+    return Array.from(dom.querySelectorAll('script,link,img')).filter(source=>{
         return source.rel!=='dns-prefetch'&&(source.src || source.href);
     }).map((link) => {
         return link.src || link.href;
