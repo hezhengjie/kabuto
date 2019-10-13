@@ -16,51 +16,42 @@
 
 import prefetch from './prefetch.mjs';
 import requestIdleCallback from './request-idle-callback.mjs';
-
+import whatsElementPure from '../whatelement/what-element';
+import {getHostName} from '../url';
+const whats = new whatsElementPure();
 const toPrefetch = new Set();
+const viewableTimer = {};
+let observeTime = 0;
+const entryList = {};
+const outList = {};
 let f = null;
-let entryList = new Map();
-let outList = new Map();
-let delay = 3000;
-// TODO 出现在视窗内一端时间才打点
 const observer = window.IntersectionObserver && new IntersectionObserver(entries => {
   entries.forEach(entry => {
-    const link = entry;
+    const link = entry.target;
+    const id = whats.getUniqueId(link).wid;
     if (entry.isIntersecting) {
-      console.log(entryList)
-      entryList.set(link,link);
-      outList.delete(link);
-      // viewableTimer[id] = setTimeout(((id) => {
-      //   observer.unobserve(link);
-      //   delete viewableTimer[id]
-      //   if (toPrefetch.has(link.href)) {
-      //     observer.unobserve(link);
-      //     prefetcher(link.href,link.observerCb);
-      //   }
-      // }).bind(null, id), 0.2 * 1000)
+      entryList[id] = entry;
+      if(outList[id]) {delete outList[id]}
     }
     else{
-      outList.set(link,link);
-      console.log(outList)
-      if(entryList.has(link)){
-        if(outList.get(link).time-entryList.get(link).time>=delay){
-          console.log('曝光啦')
-          observer.unobserve(link.target);
-          outList.delete(link);
+      outList[id] = entry;
+      if(entryList[id]){
+        if(outList[id].time-entryList[id].time>observeTime){
+          console.log('曝光啦',id)
+          observer.unobserve(outList[id].target);
+          delete outList[id]
         }
-        entryList.delete(link);
+        delete entryList[id]
       }
-      
     }
     if (f) clearTimeout(f);
-    f = setTimeout(()=>{
-      const list = Object.keys(entryList);
-      list.forEach((link) => {
-        console.log('曝光啦')
-          observer.unobserve(link.target);
-          outList.delete(link);
+    f = setTimeout(function(list){
+      list.forEach((id) => {
+          console.log('曝光啦',id)
+          observer.unobserve(entryList[id].target);
+          delete entryList[id]
       })
-    },delay)
+    }.bind(this,Object.keys(entryList)),observeTime)
   });
 });
 
@@ -114,7 +105,7 @@ export default function (options) {
 
   const timeout = options.timeout || 2e3;
   const timeoutFn = options.timeoutFn || requestIdleCallback;
-  const observeTime = options.observeTime||0;
+  observeTime = options.observeTime||0;
   const observerCb = options.observerCb||null;
   timeoutFn(() => {
     // If URLs are given, prefetch them.
@@ -125,7 +116,7 @@ export default function (options) {
       Array.from((options.el || document).querySelectorAll('a,[data-kabuto-url]'), link => {
         if(!!link.attributes['data-kabuto-url']){
             // data-kabuto-url
-            link.hostname = new URL(link.dataset.kabutoUrl).hostname;
+            link.hostname = getHostName(link.dataset.kabutoUrl);
             link.href = link.dataset.kabutoUrl;
         }
         link.observerCb = observerCb;
