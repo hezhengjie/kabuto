@@ -81,7 +81,7 @@ kabuto.observe(document.body)
 ## ChangeLog
 *0.1.2*  
 1.页面增加图片链接预加载
-2.优化DOM出现时长判断
+
 
 
 ## License
