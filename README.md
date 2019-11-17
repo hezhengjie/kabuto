@@ -47,6 +47,7 @@ kabuto的option参数基本和quick类似,接受带有以下参数的 option 对
 * origins: 静态字符串数组，包含允许进行预获取操作的 URL 主机名。默认为同域请求源，可阻止跨域请求。
 * ignores: RegExp（正则表达式），Function（函数）或者 Array（数组），用于进一步确定某 URL 是否可被预获取。会在匹配请求源之后执行。
 * observeTime:预获取的 DOM 元素视区曝光的时间，只有曝光时间大于的dom才去预获取,默认取 0.5 秒。
+* noquery: 是否预加载不同参数的同样链接，默认为true;
 
 详情可参看 https://github.com/GoogleChromeLabs/quicklink/blob/master/translations/zh-cn/README.md
 
@@ -80,7 +81,10 @@ kabuto.observe(document.body)
 
 ## ChangeLog
 *0.1.2*  
-1.页面增加图片链接预加载
+1.页面增加图片链接预加载  
+
+*0.1.3*  
+1.增加noquery参数，不同参数的同链接，默认不在预加载  
 
 
 
